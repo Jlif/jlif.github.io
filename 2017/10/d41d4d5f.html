@@ -28,12 +28,12 @@
 <meta property="og:site_name" content="江城子的博客">
 <meta property="og:description" content="很久没写博客了，最近学了不少东西，感觉陆续地需要总结一下了。 先开始写设计模式吧，今天开篇就从最简单的创建型模式中的简单工厂模式入手。 工厂模式（Factory Pattern）是 Java 中最常用的设计模式之一。这种类型的设计模式属于创建型模式，它提供了一种创建对象的最佳方式。在工厂模式中，我们在创建对象时不会对客户端暴露创建逻辑，并且是通过使用一个共同的接口来指向新创建的对象。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://ww1.sinaimg.cn/large/9778ac02gy1fkw3atioqwj20fk091mxe.jpg">
+<meta property="og:image" content="https://img.jiangchen.tech//20210505012458.png">
 <meta property="article:published_time" content="2017-10-26T00:00:00.000Z">
-<meta property="article:modified_time" content="2021-04-25T17:29:24.846Z">
+<meta property="article:modified_time" content="2021-05-04T17:25:16.614Z">
 <meta property="article:author" content="江城子">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://ww1.sinaimg.cn/large/9778ac02gy1fkw3atioqwj20fk091mxe.jpg">
+<meta name="twitter:image" content="https://img.jiangchen.tech//20210505012458.png">
 
 <link rel="canonical" href="https://www.jiangchen.tech/2017/10/d41d4d5f.html">
 
@@ -233,7 +233,7 @@
 </ol>
 <h4 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h4><p>每次增加一个产品时，都需要增加一个具体类和对象实现工厂，使得系统中类的个数成倍增加，在一定程度上增加了系统的复杂度，同时也增加了系统具体类的依赖。这并不是什么好事。</p>
 <h4 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h4><p>作为一种创建类模式，在任何需要生成复杂对象的地方，都可以使用工厂方法模式。有一点需要注意的地方就是复杂对象适合使用工厂模式，而简单对象，特别是只需要通过 <code>new</code> 就可以完成创建的对象，无需使用工厂模式。如果使用工厂模式，就需要引入一个工厂类，会增加系统的复杂度。</p>
-<h3 id="代码详解"><a href="#代码详解" class="headerlink" title="代码详解"></a>代码详解</h3><p><img src="http://ww1.sinaimg.cn/large/9778ac02gy1fkw3atioqwj20fk091mxe.jpg" alt="工厂类 ShapeFactory"></p>
+<h3 id="代码详解"><a href="#代码详解" class="headerlink" title="代码详解"></a>代码详解</h3><p><img src="https://img.jiangchen.tech//20210505012458.png" alt="工厂类 ShapeFactory"></p>
 <p>针对上面的图，我们来写一写代码吧。</p>
 <h4 id="创建一个接口"><a href="#创建一个接口" class="headerlink" title="创建一个接口"></a>创建一个接口</h4><p><code>Shape.java</code></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Shape</span> </span>&#123;</span><br><span class="line">   <span class="function"><span class="keyword">void</span> <span class="title">draw</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>

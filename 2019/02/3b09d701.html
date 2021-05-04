@@ -28,12 +28,12 @@
 <meta property="og:site_name" content="江城子的博客">
 <meta property="og:description" content="排序（sort）- 上几种经典排序算法及其时间复杂度级别 冒泡、插入、选择：O($n^2$) 基于比较 快排、归并：O($n\log n$) 基于比较 计数、基数、桶：O(n) 不基于比较">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://ww1.sinaimg.cn/large/9778ac02ly1g0ksso2vd4j20vq0g876y.jpg">
+<meta property="og:image" content="https://img.jiangchen.tech//20210505012405.png">
 <meta property="article:published_time" content="2019-02-20T00:00:00.000Z">
-<meta property="article:modified_time" content="2021-04-25T17:29:24.848Z">
+<meta property="article:modified_time" content="2021-05-04T17:24:30.802Z">
 <meta property="article:author" content="江城子">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://ww1.sinaimg.cn/large/9778ac02ly1g0ksso2vd4j20vq0g876y.jpg">
+<meta name="twitter:image" content="https://img.jiangchen.tech//20210505012405.png">
 
 <link rel="canonical" href="https://www.jiangchen.tech/2019/02/3b09d701.html">
 
@@ -270,7 +270,7 @@
 <h4 id="选择排序的算法稳定性"><a href="#选择排序的算法稳定性" class="headerlink" title="选择排序的算法稳定性"></a>选择排序的算法稳定性</h4><p>选择排序算法不是一种稳定排序算法，比如<code>[5,8,5,2,9]</code>这个数组，使用选择排序算法第一次找到的最小元素就是 2，与第一个位置的元素 5 交换位置，那第一个 5 和中间的 5 的顺序就变量，所以就不稳定了。正因如此，相对于冒泡排序和插入排序，选择排序就稍微逊色了。</p>
 <h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><h3 id="1-冒泡排序和插入排序的时间复杂度都是-O-n-2-，都是原地排序算法，为什么插入排序要比冒泡排序更受欢迎呢？"><a href="#1-冒泡排序和插入排序的时间复杂度都是-O-n-2-，都是原地排序算法，为什么插入排序要比冒泡排序更受欢迎呢？" class="headerlink" title="1. 冒泡排序和插入排序的时间复杂度都是 O($n^2$)，都是原地排序算法，为什么插入排序要比冒泡排序更受欢迎呢？"></a>1. 冒泡排序和插入排序的时间复杂度都是 O($n^2$)，都是原地排序算法，为什么插入排序要比冒泡排序更受欢迎呢？</h3><p>冒泡排序移动数据有 3 条赋值语句，而选择排序的交换位置的只有 1 条赋值语句，因此在有序度相同的情况下，冒泡排序时间复杂度是选择排序的 3 倍，所以，选择排序性能更好。</p>
 <h3 id="2-如果数据存储在链表中，这三种排序算法还能工作吗？如果能，那相应的时间、空间复杂度又是多少呢？"><a href="#2-如果数据存储在链表中，这三种排序算法还能工作吗？如果能，那相应的时间、空间复杂度又是多少呢？" class="headerlink" title="2. 如果数据存储在链表中，这三种排序算法还能工作吗？如果能，那相应的时间、空间复杂度又是多少呢？"></a>2. 如果数据存储在链表中，这三种排序算法还能工作吗？如果能，那相应的时间、空间复杂度又是多少呢？</h3><p>一般而言，考虑只能改变节点位置，冒泡排序相比于数组实现，比较次数一致，但交换时操作更复杂；插入排序，比较次数一致，不需要再有后移操作，找到位置后可以直接插入，但排序完毕后可能需要倒置链表；选择排序比较次数一致，交换操作同样比较麻烦。综上，时间复杂度和空间复杂度并无明显变化，若追求极致性能，冒泡排序的时间复杂度系数会变大，插入排序系数会减小，选择排序无明显变化。</p>
-<h3 id="三种排序算法比较"><a href="#三种排序算法比较" class="headerlink" title="三种排序算法比较"></a>三种排序算法比较</h3><p><img src="http://ww1.sinaimg.cn/large/9778ac02ly1g0ksso2vd4j20vq0g876y.jpg" alt="三种排序算法比较"></p>
+<h3 id="三种排序算法比较"><a href="#三种排序算法比较" class="headerlink" title="三种排序算法比较"></a>三种排序算法比较</h3><p><img src="https://img.jiangchen.tech//20210505012405.png" alt="三种排序算法比较"></p>
 
     </div>
 
