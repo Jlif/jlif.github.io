@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="nLs-XwfGgvat9X9Xe9k1jHnwnDWUGII1jRYAUobeIDs">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.jiangchen.tech","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="前言最近人有些低潮，干什么都不得劲。工作也逐渐进入安逸区，没什么有挑战性的工作，都是对之前的重复。想着把计算机基础都好好补一下，系统性的梳理一下，中国大学慕课网上面的国家精品课程看一看，极客时间上面的一些课程也好好学习一下。 以下的一些总结可能过于简陋，更多的是总纲性质的总结，更多的细枝末节，不懂为什么的，自己去找那些基础来看。简而言之，就是下面的总结很多只说了是什么，没有说为什么。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构与算法之美（一）">
+<meta property="og:url" content="https://blog.jiangchen.tech/2019/02/f12c81ee.html">
+<meta property="og:site_name" content="江城子的博客">
+<meta property="og:description" content="前言最近人有些低潮，干什么都不得劲。工作也逐渐进入安逸区，没什么有挑战性的工作，都是对之前的重复。想着把计算机基础都好好补一下，系统性的梳理一下，中国大学慕课网上面的国家精品课程看一看，极客时间上面的一些课程也好好学习一下。 以下的一些总结可能过于简陋，更多的是总纲性质的总结，更多的细枝末节，不懂为什么的，自己去找那些基础来看。简而言之，就是下面的总结很多只说了是什么，没有说为什么。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012538.png">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012615.png">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012642.png">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012704.png">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012724.png">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012744.png">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012801.png">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012817.png">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012835.png">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012852.png">
+<meta property="article:published_time" content="2019-02-17T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-02-17T00:00:00.000Z">
+<meta property="article:author" content="江城子">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img.jiangchen.tech/20210505012538.png">
+
+<link rel="canonical" href="https://blog.jiangchen.tech/2019/02/f12c81ee.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据结构与算法之美（一） | 江城子的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="江城子的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">江城子的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.jiangchen.tech/2019/02/f12c81ee.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="江城子">
+      <meta itemprop="description" content="一个普通程序员的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="江城子的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据结构与算法之美（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-02-17 08:00:00" itemprop="dateCreated datePublished" datetime="2019-02-17T08:00:00+08:00">2019-02-17</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">数据结构与算法</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Changyan：</span>
+    
+    
+      <a title="changyan" href="/2019/02/f12c81ee.html#SOHUCS" itemprop="discussionUrl">
+        <span id="changyan_count_unit" class="post-comments-count hc-comment-count" data-xid="2019/02/f12c81ee.html" itemprop="commentCount"></span>
+      </a>
+    
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>最近人有些低潮，干什么都不得劲。工作也逐渐进入安逸区，没什么有挑战性的工作，都是对之前的重复。想着把计算机基础都好好补一下，系统性的梳理一下，中国大学慕课网上面的国家精品课程看一看，极客时间上面的一些课程也好好学习一下。</p>
+<p>以下的一些总结可能过于简陋，更多的是总纲性质的总结，更多的细枝末节，不懂为什么的，自己去找那些基础来看。简而言之，就是下面的总结很多只说了是什么，没有说为什么。</p>
+<span id="more"></span>
+
+<h1 id="数据结构与算法总览"><a href="#数据结构与算法总览" class="headerlink" title="数据结构与算法总览"></a>数据结构与算法总览</h1><p><img src="https://img.jiangchen.tech/20210505012538.png" alt="数据结构与算法总览"></p>
+<h2 id="核心"><a href="#核心" class="headerlink" title="核心"></a>核心</h2><h3 id="10-个数据结构："><a href="#10-个数据结构：" class="headerlink" title="10 个数据结构："></a>10 个数据结构：</h3><ul>
+<li>数组</li>
+<li>链表</li>
+<li>栈</li>
+<li>队列</li>
+<li>散列表</li>
+<li>二叉树</li>
+<li>堆</li>
+<li>跳表</li>
+<li>图</li>
+<li>Trie 树</li>
+</ul>
+<h3 id="10-个算法"><a href="#10-个算法" class="headerlink" title="10 个算法"></a>10 个算法</h3><ul>
+<li>递归</li>
+<li>排序</li>
+<li>二分查找</li>
+<li>搜索</li>
+<li>哈希算法</li>
+<li>贪心算法</li>
+<li>分治算法</li>
+<li>回溯算法</li>
+<li>动态规划</li>
+<li>字符串匹配算法</li>
+</ul>
+<h2 id="算法复杂度"><a href="#算法复杂度" class="headerlink" title="算法复杂度"></a>算法复杂度</h2><p><img src="https://img.jiangchen.tech/20210505012615.png" alt="算法复杂度量级"></p>
+<p>对于刚罗列的复杂度量级，我们可以粗略地分为两类，<code>多项式量级</code>和<code>非多项式量级</code>。其中，非多项式量级只有两个：O($n^2$) 和 O($n!$)</p>
+<p>复杂度包括<code>时间复杂度</code>和<code>空间复杂度</code>。</p>
+<p>虽然复杂度看似很多，但实际上常用的就下面三种：</p>
+<p><img src="https://img.jiangchen.tech/20210505012642.png" alt="常用的复杂度分析"></p>
+<p>关于复杂度本身，还可以分为：</p>
+<ul>
+<li>最好情况时间复杂度（best case time complexity）：在最理想的情况下，执行这段代码的时间复杂度</li>
+<li>最坏情况时间复杂度（worst case time complexity）：在最糟糕的情况下，执行这段代码的时间复杂度</li>
+<li>平均情况时间复杂度（average case time complexity）：又可以叫做<code>加权平均时间复杂度</code>或者<code>期望时间复杂度</code></li>
+<li>均摊时间复杂度（amortized time complexity）：均摊时间复杂度就是一种特殊的平均时间复杂度（比如对数组进行扩容操作的复杂度）</li>
+</ul>
+<h1 id="学习算法推荐书单"><a href="#学习算法推荐书单" class="headerlink" title="学习算法推荐书单"></a>学习算法推荐书单</h1><p><img src="https://img.jiangchen.tech/20210505012704.png" alt="推荐书单"></p>
+<p>其实除了上述的书单，对于 Java 工程师，我尤其要推荐一本《算法》第四版。</p>
+<h1 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h1><h2 id="线性表数据结构"><a href="#线性表数据结构" class="headerlink" title="线性表数据结构"></a>线性表数据结构</h2><p><img src="https://img.jiangchen.tech/20210505012724.png" alt="线性表数据结构"></p>
+<h2 id="非线性表数据结构"><a href="#非线性表数据结构" class="headerlink" title="非线性表数据结构"></a>非线性表数据结构</h2><p><img src="https://img.jiangchen.tech/20210505012744.png" alt="非线性表数据结构"></p>
+<h1 id="数组（Array）"><a href="#数组（Array）" class="headerlink" title="数组（Array）"></a>数组（Array）</h1><p>关于数组和链表的区别，很多人都回答说，“链表适合插入、删除，时间复杂度 O(1)；数组适合查找，查找时间复杂度为 O(1)”。</p>
+<p>实际上，这种表述是不准确的。数组是适合查找操作，但是查找的时间复杂度并不为 O(1)。即便是排好序的数组，你用二分查找，时间复杂度也是 O($\log n$)。所以，正确的表述应该是，数组支持随机访问，根据下标随机访问的时间复杂度为 O(1)。</p>
+<p>数组由于自身特点，插入、删除等操作比较低效，对于他们的改进可以如下：</p>
+<p>关于插入操作：如果数组中的数据是有序的，我们在某个位置插入一个新的元素时，就必须按照刚才的方法搬移 k 之后的数据。但是，如果数组中存储的数据并没有任何规律，数组只是被当作一个存储数据的集合。在这种情况下，如果要将某个数组插入到第 k 个位置，为了避免大规模的数据搬移，我们还有一个简单的办法就是，直接将第 k 位的数据搬移到数组元素的最后，把新的元素直接放入第 k 个位置。</p>
+<p>关于删除操作：我们可以先记录下已经删除的数据。每次的删除操作并不是真正地搬移数据，只是记录数据已经被删除。当数组没有更多空间存储数据时，我们再触发执行一次真正的删除操作，这样就大大减少了删除操作导致的数据搬移。</p>
+<h2 id="思考：容器能否完全替代数组？"><a href="#思考：容器能否完全替代数组？" class="headerlink" title="思考：容器能否完全替代数组？"></a>思考：容器能否完全替代数组？</h2><ol>
+<li><p>Java ArrayList 无法存储基本类型，比如 int、long，需要封装为 Integer、Long 类，而 Autoboxing、Unboxing 以及动态扩容则有一定的性能消耗，所以如果特别关注性能，或者希望使用基本类型，就可以选用数组。</p>
+</li>
+<li><p>如果数据大小事先已知，并且对数据的操作非常简单，用不到 ArrayList 提供的大部分方法，也可以直接使用数组。</p>
+</li>
+<li><p>当要表示多维数组时，用数组往往会更加直观。比如 Object[][] array；而用容器的话则需要这样定义：<code>ArrayList&lt;ArrayList&gt; array</code>。</p>
+</li>
+</ol>
+<h1 id="链表（Linked-list）"><a href="#链表（Linked-list）" class="headerlink" title="链表（Linked list）"></a>链表（Linked list）</h1><h2 id="数组与链表内存分布区别"><a href="#数组与链表内存分布区别" class="headerlink" title="数组与链表内存分布区别"></a>数组与链表内存分布区别</h2><p><img src="https://img.jiangchen.tech/20210505012801.png" alt="数组与链表内存分布区别"></p>
+<h2 id="单链表"><a href="#单链表" class="headerlink" title="单链表"></a>单链表</h2><p><img src="https://img.jiangchen.tech/20210505012817.png" alt="单链表"></p>
+<p>在链表里面，有两个结点是比较特殊的，它们分别是第一个结点和最后一个结点。我们习惯性地把第一个结点叫作头结点，把最后一个结点叫作尾结点。其中，头结点用来记录链表的基地址。有了它，我们就可以遍历得到整条链表。而尾结点特殊的地方是：指针不是指向下一个结点，而是指向一个空地址 NULL，表示这是链表上最后一个结点。</p>
+<p>与数组一样，链表也支持数据的查找、插入和删除操作。</p>
+<h2 id="循环链表和双向链表"><a href="#循环链表和双向链表" class="headerlink" title="循环链表和双向链表"></a>循环链表和双向链表</h2><h3 id="循环链表"><a href="#循环链表" class="headerlink" title="循环链表"></a>循环链表</h3><p><img src="https://img.jiangchen.tech/20210505012835.png" alt="循环链表"></p>
+<p>和单链表相比，循环链表的优点是从链尾到链头比较方便。当要处理的数据具有环型结构特点时，就特别适合采用循环链表。比如著名的<code>约瑟夫问题</code>。尽管用单链表也可以实现，但是用循环链表实现的话，代码就会简洁很多。</p>
+<blockquote>
+<p>约瑟夫问题（有时也称为约瑟夫斯置换），是一个出现在计算机科学和数学中的问题。在计算机编程的算法中，类似问题又称为约瑟夫环。</p>
+<p>人们站在一个等待被处决的圈子里。 计数从圆圈中的指定点开始，并沿指定方向围绕圆圈进行。 在跳过指定数量的人之后，执行下一个人。 对剩下的人重复该过程，从下一个人开始，朝同一方向跳过相同数量的人，直到只剩下一个人，并被释放。</p>
+<p>问题即，给定人数、起点、方向和要跳过的数字，选择初始圆圈中的位置以避免被处决。</p>
+</blockquote>
+<h3 id="双向链表"><a href="#双向链表" class="headerlink" title="双向链表"></a>双向链表</h3><p><img src="https://img.jiangchen.tech/20210505012852.png" alt="双向链表"></p>
+<p>从图中可以看出来，双向链表需要额外的两个空间来存储后继结点和前驱结点的地址。所以，如果存储同样多的数据，双向链表要比单链表占用更多的内存空间。虽然两个指针比较浪费存储空间，但可以支持双向遍历，这样也带来了双向链表操作的灵活性。从结构上来看，双向链表可以支持 O(1) 时间复杂度的情况下找到前驱结点，正是这样的特点，也使双向链表在某些情况下的插入、删除等操作都要比单链表简单、高效。</p>
+<h2 id="思考：如何基于链表实现-LRU-缓存淘汰算法？"><a href="#思考：如何基于链表实现-LRU-缓存淘汰算法？" class="headerlink" title="思考：如何基于链表实现 LRU 缓存淘汰算法？"></a>思考：如何基于链表实现 LRU 缓存淘汰算法？</h2><p>缓存淘汰策略来决定。常见的策略有三种：先进先出策略 FIFO（First In，First Out）、最少使用策略 LFU（Least Frequently Used）、最近最少使用策略 LRU（Least Recently Used）。</p>
+<p>思路如下：</p>
+<p>我们维护一个有序单链表，越靠近链表尾部的结点是越早之前访问的。当有一个新的数据被访问时，我们从链表头开始顺序遍历链表。</p>
+<ol>
+<li><p>如果此数据之前已经被缓存在链表中了，我们遍历得到这个数据对应的结点，并将其从原来的位置删除，然后再插入到链表的头部。</p>
+</li>
+<li><p>如果此数据没有在缓存链表中，又可以分为两种情况：</p>
+</li>
+</ol>
+<p>如果此时缓存未满，则将此结点直接插入到链表的头部；</p>
+<p>如果此时缓存已满，则链表尾结点删除，将新的数据结点插入链表的头部。</p>
+<h2 id="对于指针的理解"><a href="#对于指针的理解" class="headerlink" title="对于指针的理解"></a>对于指针的理解</h2><p>对于指针的理解，只需要记住下面这句话就可以了：</p>
+<p>将某个变量赋值给指针，实际上就是将这个变量的地址赋值给指针；或者反过来说，指针中存储了这个变量的内存地址，指向了这个变量，通过指针就能找到这个变量。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/12/61fe2e4c.html" rel="prev" title="使用 RocketMQ 的一些总结">
+      <i class="fa fa-chevron-left"></i> 使用 RocketMQ 的一些总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/02/c13a6d36.html" rel="next" title="数据结构与算法之美（二）">
+      数据结构与算法之美（二） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="SOHUCS"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E6%80%BB%E8%A7%88"><span class="nav-number">2.</span> <span class="nav-text">数据结构与算法总览</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83"><span class="nav-number">2.1.</span> <span class="nav-text">核心</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#10-%E4%B8%AA%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="nav-number">2.1.1.</span> <span class="nav-text">10 个数据结构：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-%E4%B8%AA%E7%AE%97%E6%B3%95"><span class="nav-number">2.1.2.</span> <span class="nav-text">10 个算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="nav-number">2.2.</span> <span class="nav-text">算法复杂度</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95%E6%8E%A8%E8%8D%90%E4%B9%A6%E5%8D%95"><span class="nav-number">3.</span> <span class="nav-text">学习算法推荐书单</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">4.</span> <span class="nav-text">数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E6%80%A7%E8%A1%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">4.1.</span> <span class="nav-text">线性表数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%9E%E7%BA%BF%E6%80%A7%E8%A1%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">4.2.</span> <span class="nav-text">非线性表数据结构</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E7%BB%84%EF%BC%88Array%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">数组（Array）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%9D%E8%80%83%EF%BC%9A%E5%AE%B9%E5%99%A8%E8%83%BD%E5%90%A6%E5%AE%8C%E5%85%A8%E6%9B%BF%E4%BB%A3%E6%95%B0%E7%BB%84%EF%BC%9F"><span class="nav-number">5.1.</span> <span class="nav-text">思考：容器能否完全替代数组？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%93%BE%E8%A1%A8%EF%BC%88Linked-list%EF%BC%89"><span class="nav-number">6.</span> <span class="nav-text">链表（Linked list）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E7%BB%84%E4%B8%8E%E9%93%BE%E8%A1%A8%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83%E5%8C%BA%E5%88%AB"><span class="nav-number">6.1.</span> <span class="nav-text">数组与链表内存分布区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E9%93%BE%E8%A1%A8"><span class="nav-number">6.2.</span> <span class="nav-text">单链表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BE%AA%E7%8E%AF%E9%93%BE%E8%A1%A8%E5%92%8C%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8"><span class="nav-number">6.3.</span> <span class="nav-text">循环链表和双向链表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BE%AA%E7%8E%AF%E9%93%BE%E8%A1%A8"><span class="nav-number">6.3.1.</span> <span class="nav-text">循环链表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%8C%E5%90%91%E9%93%BE%E8%A1%A8"><span class="nav-number">6.3.2.</span> <span class="nav-text">双向链表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%9D%E8%80%83%EF%BC%9A%E5%A6%82%E4%BD%95%E5%9F%BA%E4%BA%8E%E9%93%BE%E8%A1%A8%E5%AE%9E%E7%8E%B0-LRU-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AE%97%E6%B3%95%EF%BC%9F"><span class="nav-number">6.4.</span> <span class="nav-text">思考：如何基于链表实现 LRU 缓存淘汰算法？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E4%BA%8E%E6%8C%87%E9%92%88%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">6.5.</span> <span class="nav-text">对于指针的理解</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="江城子"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">江城子</p>
+  <div class="site-description" itemprop="description">一个普通程序员的个人博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/jlif" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;jlif" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:jiangchen23@qq.com" title="E-Mail → mailto:jiangchen23@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">鄂ICP备18009295号 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">江城子</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  <script>
+  NexT.utils.loadComments(document.querySelector('#SOHUCS'), () => {
+    var appid = 'cytDmFHt2';
+    var conf = 'fe6a4eb118f50302aade6effbd7afbf6';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) {
+      window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>');
+    } else {
+      var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})});
+    }
+  });
+  </script>
+  <script src="https://assets.changyan.sohu.com/upload/plugins/plugins.count.js"></script>
+
+</body>
+</html>

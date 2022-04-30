@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="nLs-XwfGgvat9X9Xe9k1jHnwnDWUGII1jRYAUobeIDs">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.jiangchen.tech","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="排序（sort）- 上几种经典排序算法及其时间复杂度级别 冒泡、插入、选择：O($n^2$) 基于比较 快排、归并：O($n\log n$) 基于比较 计数、基数、桶：O(n) 不基于比较">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据结构与算法之美（四）">
+<meta property="og:url" content="https://blog.jiangchen.tech/2019/02/3b09d701.html">
+<meta property="og:site_name" content="江城子的博客">
+<meta property="og:description" content="排序（sort）- 上几种经典排序算法及其时间复杂度级别 冒泡、插入、选择：O($n^2$) 基于比较 快排、归并：O($n\log n$) 基于比较 计数、基数、桶：O(n) 不基于比较">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img.jiangchen.tech/20210505012405.png">
+<meta property="article:published_time" content="2019-02-20T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-02-20T00:00:00.000Z">
+<meta property="article:author" content="江城子">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img.jiangchen.tech/20210505012405.png">
+
+<link rel="canonical" href="https://blog.jiangchen.tech/2019/02/3b09d701.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据结构与算法之美（四） | 江城子的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="江城子的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">江城子的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.jiangchen.tech/2019/02/3b09d701.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="江城子">
+      <meta itemprop="description" content="一个普通程序员的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="江城子的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据结构与算法之美（四）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-02-20 08:00:00" itemprop="dateCreated datePublished" datetime="2019-02-20T08:00:00+08:00">2019-02-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">数据结构与算法</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Changyan：</span>
+    
+    
+      <a title="changyan" href="/2019/02/3b09d701.html#SOHUCS" itemprop="discussionUrl">
+        <span id="changyan_count_unit" class="post-comments-count hc-comment-count" data-xid="2019/02/3b09d701.html" itemprop="commentCount"></span>
+      </a>
+    
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="排序（sort）-上"><a href="#排序（sort）-上" class="headerlink" title="排序（sort）- 上"></a>排序（sort）- 上</h1><h2 id="几种经典排序算法及其时间复杂度级别"><a href="#几种经典排序算法及其时间复杂度级别" class="headerlink" title="几种经典排序算法及其时间复杂度级别"></a>几种经典排序算法及其时间复杂度级别</h2><ul>
+<li>冒泡、插入、选择：O($n^2$) 基于比较</li>
+<li>快排、归并：O($n\log n$) 基于比较</li>
+<li>计数、基数、桶：O(n) 不基于比较</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="如何分析一个排序算法"><a href="#如何分析一个排序算法" class="headerlink" title="如何分析一个排序算法"></a>如何分析一个排序算法</h2><h3 id="学习排序算法的思路"><a href="#学习排序算法的思路" class="headerlink" title="学习排序算法的思路"></a>学习排序算法的思路</h3><p>明确原理、掌握实现以及分析性能。</p>
+<h3 id="分析排序算法性能"><a href="#分析排序算法性能" class="headerlink" title="分析排序算法性能"></a>分析排序算法性能</h3><p>从执行效率、内存消耗以及稳定性 3 个方面分析排序算法的性能。</p>
+<h3 id="执行效率"><a href="#执行效率" class="headerlink" title="执行效率"></a>执行效率</h3><p>从以下 3 个方面来衡量：</p>
+<ol>
+<li>最好情况、最坏情况、平均情况时间复杂度</li>
+<li>时间复杂度的系数、常数、低阶：排序的数据量比较小时考虑</li>
+<li>比较次数和交换（或移动）次数</li>
+</ol>
+<h3 id="内存消耗"><a href="#内存消耗" class="headerlink" title="内存消耗"></a>内存消耗</h3><p>通过空间复杂度来衡量。</p>
+<p>针对排序算法的空间复杂度，引入原地排序的概念，原地排序算法就是指空间复杂度为 O(1) 的排序算法。</p>
+<h3 id="稳定性"><a href="#稳定性" class="headerlink" title="稳定性"></a>稳定性</h3><p>如果待排序的序列中存在值等的元素，经过排序之后，相等元素之间原有的先后顺序不变，就说明这个排序算法时稳定的。</p>
+<h2 id="冒泡排序"><a href="#冒泡排序" class="headerlink" title="冒泡排序"></a>冒泡排序</h2><h3 id="冒泡排序算法原理"><a href="#冒泡排序算法原理" class="headerlink" title="冒泡排序算法原理"></a>冒泡排序算法原理</h3><ol>
+<li>冒泡排序只会操作相邻的两个数据。</li>
+<li>对相邻两个数据进行比较，看是否满足大小关系要求，若不满足让它俩互换。</li>
+<li>一次冒泡会让至少一个元素移动到它应该在的位置，重复 n 次，就完成了 n 个数据的排序工作。</li>
+<li>优化：若某次冒泡不存在数据交换，则说明已经达到完全有序，所以终止冒泡。</li>
+</ol>
+<h3 id="冒泡排序代码实现"><a href="#冒泡排序代码实现" class="headerlink" title="冒泡排序代码实现"></a>冒泡排序代码实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 冒泡排序</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> a 待排序数组</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> n 数组长度</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">bubbleSort</span><span class="params">(<span class="type">int</span>[] a, <span class="type">int</span> n)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (n &lt;= <span class="number">1</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">        <span class="comment">// 提前退出冒泡循环的标志位</span></span><br><span class="line">        <span class="type">boolean</span> <span class="variable">flag</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; n - i - <span class="number">1</span>; ++j) &#123;</span><br><span class="line">            <span class="keyword">if</span> (a[j] &gt; a[j + <span class="number">1</span>]) &#123; <span class="comment">// 交换</span></span><br><span class="line">                <span class="type">int</span> <span class="variable">tmp</span> <span class="operator">=</span> a[j];</span><br><span class="line">                a[j] = a[j + <span class="number">1</span>];</span><br><span class="line">                a[j + <span class="number">1</span>] = tmp;</span><br><span class="line">                flag = <span class="literal">true</span>;  <span class="comment">// 表示有数据交换</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!flag) <span class="keyword">break</span>;  <span class="comment">// 没有数据交换，提前退出</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="冒泡排序性能分析"><a href="#冒泡排序性能分析" class="headerlink" title="冒泡排序性能分析"></a>冒泡排序性能分析</h3><h4 id="冒泡排序的执行效率"><a href="#冒泡排序的执行效率" class="headerlink" title="冒泡排序的执行效率"></a>冒泡排序的执行效率</h4><p>最小时间复杂度：数据完全有序时，只需进行一次冒泡操作即可，时间复杂度是 O(n)。<br>最大时间复杂度：数据倒序排序时，需要 n 次冒泡操作，时间复杂度是 O($n^2$)。<br>平均时间复杂度：通过有序度和逆序度来分析。</p>
+<p>什么是有序度？</p>
+<p>有序度是数组中具有有序关系的元素对的个数，比如<code>[2,4,3,1,5,6]</code>这组数据的有序度就是 11，分别是<code>[2,4][2,3][2,5][2,6][4,5][4,6][3,5][3,6][1,5][1,6][5,6]</code>。同理，对于一个倒序数组，比如<code>[6,5,4,3,2,1]</code>，有序度是 0；对于一个完全有序的数组，比如<code>[1,2,3,4,5,6]</code>，有序度为$n*(n-1)&#x2F;2$，也就是 15，完全有序的情况称为满有序度。</p>
+<p>什么是逆序度？</p>
+<p>逆序度的定义正好和有序度相反。核心公式：逆序度&#x3D;满有序度-有序度。</p>
+<p>排序过程，就是有序度增加，逆序度减少的过程，最后达到满有序度，就说明排序完成了。</p>
+<p>冒泡排序包含两个操作原子，即比较和交换，每交换一次，有序度加 1。不管算法如何改进，交换的次数总是确定的，即逆序度。<br>对于包含 n 个数据的数组进行冒泡排序，平均交换次数是多少呢？最坏的情况初始有序度为 0，所以要进行 n*(n-1)&#x2F;2 交换。最好情况下，初始状态有序度是$n*(n-1)&#x2F;2$，就不需要进行交互。我们可以取个中间值$n*(n-1)&#x2F;4$，来表示初始有序度既不是很高也不是很低的平均情况。<br>换句话说，平均情况下，需要 $n*(n-1)&#x2F;4$ 次交换操作，比较操作可定比交换操作多，而复杂度的上限是 O($n^2$)，所以平均情况时间复杂度就是 O($n^2$)。</p>
+<h4 id="冒泡排序的空间复杂度"><a href="#冒泡排序的空间复杂度" class="headerlink" title="冒泡排序的空间复杂度"></a>冒泡排序的空间复杂度</h4><p>每次交换仅需 1 个临时变量，故空间复杂度为 O(1)，是原地排序算法。</p>
+<h4 id="冒泡排序的算法稳定性"><a href="#冒泡排序的算法稳定性" class="headerlink" title="冒泡排序的算法稳定性"></a>冒泡排序的算法稳定性</h4><p>如果两个值相等，就不会交换位置，故是稳定排序算法。</p>
+<h2 id="插入排序"><a href="#插入排序" class="headerlink" title="插入排序"></a>插入排序</h2><h3 id="插入排序算法原理"><a href="#插入排序算法原理" class="headerlink" title="插入排序算法原理"></a>插入排序算法原理</h3><p>首先，我们将数组中的数据分为 2 个区间，即已排序区间和未排序区间。初始已排序区间只有一个元素，就是数组的第一个元素。插入算法的核心思想就是取未排序区间中的元素，在已排序区间中找到合适的插入位置将其插入，并保证已排序区间中的元素一直有序。重复这个过程，直到未排序中元素为空，算法结束。</p>
+<h3 id="插入排序代码实现"><a href="#插入排序代码实现" class="headerlink" title="插入排序代码实现"></a>插入排序代码实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 插入排序</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> a 待排序数组</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> n 数组长度</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">insertionSort</span><span class="params">(<span class="type">int</span>[] a, <span class="type">int</span> n)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (n &lt;= <span class="number">1</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>; i &lt; n; ++i) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">value</span> <span class="operator">=</span> a[i];</span><br><span class="line">        <span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> i - <span class="number">1</span>;</span><br><span class="line">        <span class="comment">// 查找插入的位置</span></span><br><span class="line">        <span class="keyword">for</span> (; j &gt;= <span class="number">0</span>; --j) &#123;</span><br><span class="line">            <span class="keyword">if</span> (a[j] &gt; value) &#123;</span><br><span class="line">                a[j + <span class="number">1</span>] = a[j];  <span class="comment">// 数据移动</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        a[j + <span class="number">1</span>] = value; <span class="comment">// 插入数据</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="插入排序性能分析"><a href="#插入排序性能分析" class="headerlink" title="插入排序性能分析"></a>插入排序性能分析</h3><h4 id="插入排序的时间复杂度"><a href="#插入排序的时间复杂度" class="headerlink" title="插入排序的时间复杂度"></a>插入排序的时间复杂度</h4><p>如果要排序的数组已经是有序的，我们并不需要搬移任何数据。只需要遍历一遍数组即可，所以最好时间复杂度是 O(n)。如果数组是倒序的，每次插入都相当于在数组的第一个位置插入新的数据，所以需要移动大量的数据，因此最坏时间复杂度是 O($n^2$)。而在一个数组中插入一个元素的平均时间复杂都是 O(n)，插入排序需要 n 次插入，所以平均时间复杂度是 O($n^2$)。</p>
+<h4 id="插入排序的空间复杂度"><a href="#插入排序的空间复杂度" class="headerlink" title="插入排序的空间复杂度"></a>插入排序的空间复杂度</h4><p>从上面的代码可以看出，插入排序算法的运行并不需要额外的存储空间，所以空间复杂度是 O(1)，是原地排序算法。</p>
+<h4 id="插入排序的算法稳定性"><a href="#插入排序的算法稳定性" class="headerlink" title="插入排序的算法稳定性"></a>插入排序的算法稳定性</h4><p>在插入排序中，对于值相同的元素，我们可以选择将后面出现的元素，插入到前面出现的元素的后面，这样就保持原有的顺序不变，所以是稳定的。</p>
+<h2 id="选择排序"><a href="#选择排序" class="headerlink" title="选择排序"></a>选择排序</h2><h3 id="选择排序算法原理"><a href="#选择排序算法原理" class="headerlink" title="选择排序算法原理"></a>选择排序算法原理</h3><p>选择排序算法也分已排序区间和未排序区间。但是选择排序每次会从未排序区间中找到最小的元素，并将其放置到已排序区间的末尾。</p>
+<h3 id="选择排序代码实现"><a href="#选择排序代码实现" class="headerlink" title="选择排序代码实现"></a>选择排序代码实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 选择排序</span></span><br><span class="line"><span class="comment">    *</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> a 待排序数组</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> n 数组长度</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">selectSort</span><span class="params">(<span class="type">int</span>[] a, <span class="type">int</span> n)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (n &lt;= <span class="number">1</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">min</span> <span class="operator">=</span> i;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> i; j &lt; n; j++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (a[j] &lt; a[min]) min = j;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (min != i) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">temp</span> <span class="operator">=</span> a[i];</span><br><span class="line">            a[i] = a[min];</span><br><span class="line">            a[min] = temp;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="选择排序性能分析"><a href="#选择排序性能分析" class="headerlink" title="选择排序性能分析"></a>选择排序性能分析</h3><h4 id="选择排序的时间复杂度"><a href="#选择排序的时间复杂度" class="headerlink" title="选择排序的时间复杂度"></a>选择排序的时间复杂度</h4><p>选择排序的最好、最坏、平均情况时间复杂度都是 O($n^2$)。为什么？因为无论是否有序，每个循环都会完整执行，没得商量。</p>
+<h4 id="选择排序的空间复杂度"><a href="#选择排序的空间复杂度" class="headerlink" title="选择排序的空间复杂度"></a>选择排序的空间复杂度</h4><p>选择排序算法空间复杂度是 O(1)，是一种原地排序算法。</p>
+<h4 id="选择排序的算法稳定性"><a href="#选择排序的算法稳定性" class="headerlink" title="选择排序的算法稳定性"></a>选择排序的算法稳定性</h4><p>选择排序算法不是一种稳定排序算法，比如<code>[5,8,5,2,9]</code>这个数组，使用选择排序算法第一次找到的最小元素就是 2，与第一个位置的元素 5 交换位置，那第一个 5 和中间的 5 的顺序就变量，所以就不稳定了。正因如此，相对于冒泡排序和插入排序，选择排序就稍微逊色了。</p>
+<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><h3 id="1-冒泡排序和插入排序的时间复杂度都是-O-n-2-，都是原地排序算法，为什么插入排序要比冒泡排序更受欢迎呢？"><a href="#1-冒泡排序和插入排序的时间复杂度都是-O-n-2-，都是原地排序算法，为什么插入排序要比冒泡排序更受欢迎呢？" class="headerlink" title="1. 冒泡排序和插入排序的时间复杂度都是 O($n^2$)，都是原地排序算法，为什么插入排序要比冒泡排序更受欢迎呢？"></a>1. 冒泡排序和插入排序的时间复杂度都是 O($n^2$)，都是原地排序算法，为什么插入排序要比冒泡排序更受欢迎呢？</h3><p>冒泡排序移动数据有 3 条赋值语句，而选择排序的交换位置的只有 1 条赋值语句，因此在有序度相同的情况下，冒泡排序时间复杂度是选择排序的 3 倍，所以，选择排序性能更好。</p>
+<h3 id="2-如果数据存储在链表中，这三种排序算法还能工作吗？如果能，那相应的时间、空间复杂度又是多少呢？"><a href="#2-如果数据存储在链表中，这三种排序算法还能工作吗？如果能，那相应的时间、空间复杂度又是多少呢？" class="headerlink" title="2. 如果数据存储在链表中，这三种排序算法还能工作吗？如果能，那相应的时间、空间复杂度又是多少呢？"></a>2. 如果数据存储在链表中，这三种排序算法还能工作吗？如果能，那相应的时间、空间复杂度又是多少呢？</h3><p>一般而言，考虑只能改变节点位置，冒泡排序相比于数组实现，比较次数一致，但交换时操作更复杂；插入排序，比较次数一致，不需要再有后移操作，找到位置后可以直接插入，但排序完毕后可能需要倒置链表；选择排序比较次数一致，交换操作同样比较麻烦。综上，时间复杂度和空间复杂度并无明显变化，若追求极致性能，冒泡排序的时间复杂度系数会变大，插入排序系数会减小，选择排序无明显变化。</p>
+<h3 id="三种排序算法比较"><a href="#三种排序算法比较" class="headerlink" title="三种排序算法比较"></a>三种排序算法比较</h3><p><img src="https://img.jiangchen.tech/20210505012405.png" alt="三种排序算法比较"></p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/02/8c24ce64.html" rel="prev" title="数据结构与算法之美（三）">
+      <i class="fa fa-chevron-left"></i> 数据结构与算法之美（三）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/04/54971246.html" rel="next" title="数据结构与算法之美（五）">
+      数据结构与算法之美（五） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="SOHUCS"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8E%92%E5%BA%8F%EF%BC%88sort%EF%BC%89-%E4%B8%8A"><span class="nav-number">1.</span> <span class="nav-text">排序（sort）- 上</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%A0%E7%A7%8D%E7%BB%8F%E5%85%B8%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E5%8F%8A%E5%85%B6%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6%E7%BA%A7%E5%88%AB"><span class="nav-number">1.1.</span> <span class="nav-text">几种经典排序算法及其时间复杂度级别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%88%86%E6%9E%90%E4%B8%80%E4%B8%AA%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95"><span class="nav-number">1.2.</span> <span class="nav-text">如何分析一个排序算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E7%9A%84%E6%80%9D%E8%B7%AF"><span class="nav-number">1.2.1.</span> <span class="nav-text">学习排序算法的思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%9E%90%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E6%80%A7%E8%83%BD"><span class="nav-number">1.2.2.</span> <span class="nav-text">分析排序算法性能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E6%95%88%E7%8E%87"><span class="nav-number">1.2.3.</span> <span class="nav-text">执行效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E6%B6%88%E8%80%97"><span class="nav-number">1.2.4.</span> <span class="nav-text">内存消耗</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="nav-number">1.2.5.</span> <span class="nav-text">稳定性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F"><span class="nav-number">1.3.</span> <span class="nav-text">冒泡排序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86"><span class="nav-number">1.3.1.</span> <span class="nav-text">冒泡排序算法原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.3.2.</span> <span class="nav-text">冒泡排序代码实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="nav-number">1.3.3.</span> <span class="nav-text">冒泡排序性能分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F%E7%9A%84%E6%89%A7%E8%A1%8C%E6%95%88%E7%8E%87"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">冒泡排序的执行效率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F%E7%9A%84%E7%A9%BA%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">冒泡排序的空间复杂度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F%E7%9A%84%E7%AE%97%E6%B3%95%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">冒泡排序的算法稳定性</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F"><span class="nav-number">1.4.</span> <span class="nav-text">插入排序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86"><span class="nav-number">1.4.1.</span> <span class="nav-text">插入排序算法原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.4.2.</span> <span class="nav-text">插入排序代码实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="nav-number">1.4.3.</span> <span class="nav-text">插入排序性能分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F%E7%9A%84%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="nav-number">1.4.3.1.</span> <span class="nav-text">插入排序的时间复杂度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F%E7%9A%84%E7%A9%BA%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="nav-number">1.4.3.2.</span> <span class="nav-text">插入排序的空间复杂度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F%E7%9A%84%E7%AE%97%E6%B3%95%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="nav-number">1.4.3.3.</span> <span class="nav-text">插入排序的算法稳定性</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F"><span class="nav-number">1.5.</span> <span class="nav-text">选择排序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86"><span class="nav-number">1.5.1.</span> <span class="nav-text">选择排序算法原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.5.2.</span> <span class="nav-text">选择排序代码实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="nav-number">1.5.3.</span> <span class="nav-text">选择排序性能分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F%E7%9A%84%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="nav-number">1.5.3.1.</span> <span class="nav-text">选择排序的时间复杂度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F%E7%9A%84%E7%A9%BA%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="nav-number">1.5.3.2.</span> <span class="nav-text">选择排序的空间复杂度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F%E7%9A%84%E7%AE%97%E6%B3%95%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="nav-number">1.5.3.3.</span> <span class="nav-text">选择排序的算法稳定性</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%9D%E8%80%83"><span class="nav-number">1.6.</span> <span class="nav-text">思考</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F%E5%92%8C%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F%E7%9A%84%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6%E9%83%BD%E6%98%AF-O-n-2-%EF%BC%8C%E9%83%BD%E6%98%AF%E5%8E%9F%E5%9C%B0%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F%E8%A6%81%E6%AF%94%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F%E6%9B%B4%E5%8F%97%E6%AC%A2%E8%BF%8E%E5%91%A2%EF%BC%9F"><span class="nav-number">1.6.1.</span> <span class="nav-text">1. 冒泡排序和插入排序的时间复杂度都是 O($n^2$)，都是原地排序算法，为什么插入排序要比冒泡排序更受欢迎呢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%A6%82%E6%9E%9C%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%9C%A8%E9%93%BE%E8%A1%A8%E4%B8%AD%EF%BC%8C%E8%BF%99%E4%B8%89%E7%A7%8D%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E8%BF%98%E8%83%BD%E5%B7%A5%E4%BD%9C%E5%90%97%EF%BC%9F%E5%A6%82%E6%9E%9C%E8%83%BD%EF%BC%8C%E9%82%A3%E7%9B%B8%E5%BA%94%E7%9A%84%E6%97%B6%E9%97%B4%E3%80%81%E7%A9%BA%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%8F%88%E6%98%AF%E5%A4%9A%E5%B0%91%E5%91%A2%EF%BC%9F"><span class="nav-number">1.6.2.</span> <span class="nav-text">2. 如果数据存储在链表中，这三种排序算法还能工作吗？如果能，那相应的时间、空间复杂度又是多少呢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95%E6%AF%94%E8%BE%83"><span class="nav-number">1.6.3.</span> <span class="nav-text">三种排序算法比较</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="江城子"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">江城子</p>
+  <div class="site-description" itemprop="description">一个普通程序员的个人博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/jlif" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;jlif" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:jiangchen23@qq.com" title="E-Mail → mailto:jiangchen23@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">鄂ICP备18009295号 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">江城子</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  <script>
+  NexT.utils.loadComments(document.querySelector('#SOHUCS'), () => {
+    var appid = 'cytDmFHt2';
+    var conf = 'fe6a4eb118f50302aade6effbd7afbf6';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) {
+      window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>');
+    } else {
+      var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})});
+    }
+  });
+  </script>
+  <script src="https://assets.changyan.sohu.com/upload/plugins/plugins.count.js"></script>
+
+</body>
+</html>

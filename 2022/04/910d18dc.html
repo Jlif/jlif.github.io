@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="nLs-XwfGgvat9X9Xe9k1jHnwnDWUGII1jRYAUobeIDs">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.jiangchen.tech","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="提示：本文翻译的时候，文档最新版本是 2022&#x2F;04&#x2F;29，所以本文可能存在一定的时效性问题，请读者注意。  总览将虚拟线程引入到 Java 平台。虚拟线程是轻量级的线程，可以大大减少编写、维护和监测高吞吐量并发应用程序的工作量。这是 预览 API . 目标 使以简单的线程每请求方式编写的服务器应用程序能够以接近最佳的硬件利用率进行扩展。 让使用 java.lang.Thre">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JEP-425 Virtual Threads (Preview)">
+<meta property="og:url" content="https://blog.jiangchen.tech/2022/04/910d18dc.html">
+<meta property="og:site_name" content="江城子的博客">
+<meta property="og:description" content="提示：本文翻译的时候，文档最新版本是 2022&#x2F;04&#x2F;29，所以本文可能存在一定的时效性问题，请读者注意。  总览将虚拟线程引入到 Java 平台。虚拟线程是轻量级的线程，可以大大减少编写、维护和监测高吞吐量并发应用程序的工作量。这是 预览 API . 目标 使以简单的线程每请求方式编写的服务器应用程序能够以接近最佳的硬件利用率进行扩展。 让使用 java.lang.Thre">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-04-29T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-04-29T16:00:00.000Z">
+<meta property="article:author" content="江城子">
+<meta property="article:tag" content="JEP">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="翻译">
+<meta property="article:tag" content="协程">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.jiangchen.tech/2022/04/910d18dc.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>JEP-425 Virtual Threads (Preview) | 江城子的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="江城子的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">江城子的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.jiangchen.tech/2022/04/910d18dc.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="江城子">
+      <meta itemprop="description" content="一个普通程序员的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="江城子的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JEP-425 Virtual Threads (Preview)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-04-30 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-30T00:00:00+08:00">2022-04-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BF%BB%E8%AF%91/" itemprop="url" rel="index"><span itemprop="name">翻译</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Changyan：</span>
+    
+    
+      <a title="changyan" href="/2022/04/910d18dc.html#SOHUCS" itemprop="discussionUrl">
+        <span id="changyan_count_unit" class="post-comments-count hc-comment-count" data-xid="2022/04/910d18dc.html" itemprop="commentCount"></span>
+      </a>
+    
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>提示：本文翻译的时候，文档最新版本是 2022&#x2F;04&#x2F;29，所以本文可能存在一定的时效性问题，请读者注意。</p>
+</blockquote>
+<h2 id="总览"><a href="#总览" class="headerlink" title="总览"></a>总览</h2><p>将<em>虚拟线程</em>引入到 Java 平台。虚拟线程是轻量级的线程，可以大大减少编写、维护和监测高吞吐量并发应用程序的工作量。这是 <a target="_blank" rel="noopener" href="https://openjdk.java.net/jeps/12">预览 API</a> .</p>
+<h2 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h2><ul>
+<li>使以简单的线程每请求方式编写的服务器应用程序能够以接近最佳的硬件利用率进行扩展。</li>
+<li>让使用 <code>java.lang.Thread</code> API 的现有代码能够以最小的改动采用虚拟线程。</li>
+<li>使用现有的 JDK 工具轻松地对虚拟线程进行故障排除、调试和分析。<span id="more"></span>
+<h2 id="非目标"><a href="#非目标" class="headerlink" title="非目标"></a>非目标</h2></li>
+<li>我们的目标不是移除线程的传统实现，也不是默默地将现有的应用程序迁移到使用虚拟线程。</li>
+<li>它的目标不是改变 Java 的基本并发模型。</li>
+<li>在 Java 语言或 Java 库中提供新的数据并行结构不是我们的目标。流 API 仍然是并行处理大型数据集的首选方式。</li>
+</ul>
+<h2 id="动机"><a href="#动机" class="headerlink" title="动机"></a>动机</h2><p>近三十年来，Java 开发者一直依赖线程作为并发服务器应用程序的构建基础模块。每个方法中的每条语句都在一个线程中执行，由于 Java 是多线程的，所以多个执行线程同时发生。线程是 Java 的并发单元：一段顺序代码，与其他此类单元同时运行，而且基本上是独立的。每个线程都提供一个堆栈来存储局部变量和协调方法调用，以及出错时的上下文：异常是由同一线程中的方法抛出和捕获的，因此开发人员可以使用线程的堆栈跟踪来找出发生了什么。线程也是工具的一个核心概念：调试器通过线程方法中的语句，剖析器将多个线程的行为可视化，以帮助了解其性能。</p>
+<h3 id="线程每请求的风格"><a href="#线程每请求的风格" class="headerlink" title="线程每请求的风格"></a>线程每请求的风格</h3><p>服务器应用程序通常处理相互独立的并发用户请求，因此，应用程序通过在整个请求期间为该请求分配一个线程来处理请求是合理的。这种线程每请求的风格容易理解，容易编程，也容易调试和分析，因为它使用操作系统平台的最小并发单元来代表应用程序的并发单元。</p>
+<p>服务器应用程序的可扩展性受 Little 定律的制约，该定律将延迟、并发性和吞吐量联系起来。对于一个给定的请求处理时间（即延迟），应用程序同时处理的请求数量（即并发性）必须与到达率（即吞吐量）成比例增长。例如，假设一个平均延迟为 50ms 的应用程序，通过并发处理 10 个请求，达到每秒 200 个请求的吞吐量。为了使该应用程序扩展到每秒 2000 个请求的吞吐量，它将需要同时处理 100 个请求。如果每个请求都在一个线程中处理，那么，为了使应用程序跟上，线程的数量必须随着吞吐量的增长而增长。</p>
+<p>不幸的是，可用的线程数量是有限的，因为 JDK 将线程作为操作系统线程的封装来实现。操作系统线程的调度成本很高，所以我们不能有太多的线程，这使得该实现不适合线程每请求的方式。如果每个请求在其持续时间内消耗一个线程，也就是一个操作系统线程，那么线程的数量往往在其他资源（如 CPU 或网络连接）耗尽之前就已经成为限制因素了。JDK 目前对线程的实现将应用程序的吞吐量限制在一个远远低于硬件所能支持的水平。即使线程是池化的，这种情况也会发生，因为池化有助于避免启动新线程的高成本，但不会增加线程的总数。</p>
+<h3 id="用异步风格提高可扩展性"><a href="#用异步风格提高可扩展性" class="headerlink" title="用异步风格提高可扩展性"></a>用异步风格提高可扩展性</h3><p>一些希望最大限度地利用硬件的开发者已经放弃了线程每请求风格，而选择了线程共享风格。请求处理代码不是从头到尾在一个线程上处理一个请求，而是在等待一个 I&#x2F;O 操作完成时将其线程返回到一个池中，以便该线程可以为其他请求提供服务。这种细粒度的线程共享，即代码只在执行计算时保留线程，而不是在等待 I&#x2F;O 时保留线程，允许大量的并发操作而不消耗大量的线程。虽然它消除了操作系统线程稀缺性对吞吐量的限制，但它的代价很高。它需要所谓的异步编程风格，采用一套独立的 I&#x2F;O 方法，不等待 I&#x2F;O 操作的完成，而是在以后向回调发出完成信号。如果没有专门的线程，开发者必须将他们的请求处理逻辑分解成小的阶段，通常写成 lambda 表达式，然后用 API 将它们组成一个顺序管道（例如 CompletableFuture，或所谓的 “反应式 “框架）。因此，他们放弃了语言的基本顺序组合操作符，如循环和 try&#x2F;catch 块。</p>
+<p>在异步风格中，一个请求的每个阶段可能在不同的线程上执行，每个线程以交错的方式运行属于不同请求的阶段。这对理解程序行为有深刻的影响。堆栈跟踪没有提供可用的上下文，调试器不能穿过请求处理逻辑，剖析器不能将一个操作的成本与它的调用者联系起来。当使用 Java 的流 API 来处理短管道中的数据时，组成 lambda 表达式是可以管理的，但当应用程序中所有的请求处理代码都必须以这种方式编写时，就会出现问题。这种编程风格与 Java 平台不一致，因为应用程序的并发单元，即异步流水线，不再是平台的并发单位了。</p>
+<h3 id="使用虚拟线程保留线程线程每请求每请求的风格"><a href="#使用虚拟线程保留线程线程每请求每请求的风格" class="headerlink" title="使用虚拟线程保留线程线程每请求每请求的风格"></a>使用虚拟线程保留线程线程每请求每请求的风格</h3><p>为了使应用程序能够扩展，同时与平台保持和谐，我们应该努力通过更有效地实现线程来保留线程每请求的风格，这样它们就会更多。操作系统无法更有效地实现操作系统线程，因为不同的语言和运行时以不同的方式使用线程栈。然而，Java 运行时有可能以一种切断与操作系统线程的一对一对应关系的方式来实现 Java 线程。就像操作系统通过将大量的虚拟地址空间映射到有限的物理 RAM 上，给人以内存充足的错觉一样，Java 运行时也可以通过将大量的虚拟线程映射到少量的操作系统线程上，给人以线程充足的错觉。</p>
+<p>虚拟线程是 <code>java.lang.Thread</code> 的一个实例，它不与特定的操作系统线程相联系。相比之下，平台线程是以传统方式实现的 <code>java.lang.Thread</code> 的一个实例，作为操作系统线程的一个封装。</p>
+<p>线程每请求风格的应用程序代码可以在请求的整个过程中在虚拟线程中运行，但虚拟线程只在 CPU 上执行计算时消耗一个操作系统线程。其结果是与异步风格相同的可扩展性，只是它是以透明方式实现的。当在虚拟线程中运行的代码调用 java.* API 中的阻塞 I&#x2F;O 操作时，运行时会执行一个非阻塞的操作系统调用，并自动暂停虚拟线程，直到以后可以恢复。对 Java 开发者来说，虚拟线程只是创建成本低且几乎无限多的线程。硬件利用率接近最佳，允许高水平的并发，因此，具有很高的吞吐量，与此同时应用程序仍然与 Java 平台的多线程设计及其工具相协调。</p>
+<h3 id="虚拟线程的影响"><a href="#虚拟线程的影响" class="headerlink" title="虚拟线程的影响"></a>虚拟线程的影响</h3><p>虚拟线程开销低，数量众多，因此没必要池化使用：每个任务都应创建一个新的虚拟线程。因此，大多数虚拟线程都是短命的，而且调用栈很浅，只执行一次 HTTP 客户端调用或一次 JDBC 查询。相比之下，操作系统线程是重量级和昂贵的，因此往往必须是池化的。它们往往寿命很长，有很深的调用栈，并在许多任务之间共享使用。</p>
+<p>总之，虚拟线程保留了与 Java 平台设计相协调的可靠的线程每请求风格，同时优化了硬件的利用。使用虚拟线程不需要学习新的概念，尽管它可能需要忘掉为应对今天的高线程成本而养成的习惯。虚拟线程不仅能帮助应用开发者，还能帮助框架设计者提供易于使用的 API，这些 API 与平台的设计兼容，同时又不影响扩展性。</p>
+<blockquote>
+<p>To be continue …</p>
+</blockquote>
+<h2 id="参考文档："><a href="#参考文档：" class="headerlink" title="参考文档："></a>参考文档：</h2><p> <a target="_blank" rel="noopener" href="https://openjdk.java.net/jeps/425">JEP 425: Virtual Threads (Preview)</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/jep/" rel="tag"># JEP</a>
+              <a href="/tags/java/" rel="tag"># Java</a>
+              <a href="/tags/%E7%BF%BB%E8%AF%91/" rel="tag"># 翻译</a>
+              <a href="/tags/%E5%8D%8F%E7%A8%8B/" rel="tag"># 协程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/f7703578.html" rel="prev" title="JVM 相关总结（三）">
+      <i class="fa fa-chevron-left"></i> JVM 相关总结（三）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="SOHUCS"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E8%A7%88"><span class="nav-number">1.</span> <span class="nav-text">总览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E6%A0%87"><span class="nav-number">2.</span> <span class="nav-text">目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%9E%E7%9B%AE%E6%A0%87"><span class="nav-number">3.</span> <span class="nav-text">非目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%9C%BA"><span class="nav-number">4.</span> <span class="nav-text">动机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%AF%8F%E8%AF%B7%E6%B1%82%E7%9A%84%E9%A3%8E%E6%A0%BC"><span class="nav-number">4.1.</span> <span class="nav-text">线程每请求的风格</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E5%BC%82%E6%AD%A5%E9%A3%8E%E6%A0%BC%E6%8F%90%E9%AB%98%E5%8F%AF%E6%89%A9%E5%B1%95%E6%80%A7"><span class="nav-number">4.2.</span> <span class="nav-text">用异步风格提高可扩展性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B%E4%BF%9D%E7%95%99%E7%BA%BF%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%AF%8F%E8%AF%B7%E6%B1%82%E6%AF%8F%E8%AF%B7%E6%B1%82%E7%9A%84%E9%A3%8E%E6%A0%BC"><span class="nav-number">4.3.</span> <span class="nav-text">使用虚拟线程保留线程线程每请求每请求的风格</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-number">4.4.</span> <span class="nav-text">虚拟线程的影响</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3%EF%BC%9A"><span class="nav-number">5.</span> <span class="nav-text">参考文档：</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="江城子"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">江城子</p>
+  <div class="site-description" itemprop="description">一个普通程序员的个人博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/jlif" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;jlif" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:jiangchen23@qq.com" title="E-Mail → mailto:jiangchen23@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">鄂ICP备18009295号 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">江城子</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  <script>
+  NexT.utils.loadComments(document.querySelector('#SOHUCS'), () => {
+    var appid = 'cytDmFHt2';
+    var conf = 'fe6a4eb118f50302aade6effbd7afbf6';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) {
+      window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>');
+    } else {
+      var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})});
+    }
+  });
+  </script>
+  <script src="https://assets.changyan.sohu.com/upload/plugins/plugins.count.js"></script>
+
+</body>
+</html>

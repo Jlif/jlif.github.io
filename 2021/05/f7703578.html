@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="nLs-XwfGgvat9X9Xe9k1jHnwnDWUGII1jRYAUobeIDs">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.jiangchen.tech","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="JVM 相关总结（三）GC 日志解读与分析示例代码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM 相关总结（三）">
+<meta property="og:url" content="https://blog.jiangchen.tech/2021/05/f7703578.html">
+<meta property="og:site_name" content="江城子的博客">
+<meta property="og:description" content="JVM 相关总结（三）GC 日志解读与分析示例代码">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-05-01T16:29:21.000Z">
+<meta property="article:modified_time" content="2021-05-01T16:29:21.000Z">
+<meta property="article:author" content="江城子">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.jiangchen.tech/2021/05/f7703578.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>JVM 相关总结（三） | 江城子的博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="江城子的博客" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">江城子的博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.jiangchen.tech/2021/05/f7703578.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="江城子">
+      <meta itemprop="description" content="一个普通程序员的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="江城子的博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JVM 相关总结（三）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-02 00:29:21" itemprop="dateCreated datePublished" datetime="2021-05-02T00:29:21+08:00">2021-05-02</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/jvm/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Changyan：</span>
+    
+    
+      <a title="changyan" href="/2021/05/f7703578.html#SOHUCS" itemprop="discussionUrl">
+        <span id="changyan_count_unit" class="post-comments-count hc-comment-count" data-xid="2021/05/f7703578.html" itemprop="commentCount"></span>
+      </a>
+    
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="JVM-相关总结（三）"><a href="#JVM-相关总结（三）" class="headerlink" title="JVM 相关总结（三）"></a>JVM 相关总结（三）</h1><h2 id="GC-日志解读与分析"><a href="#GC-日志解读与分析" class="headerlink" title="GC 日志解读与分析"></a>GC 日志解读与分析</h2><h3 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h3><span id="more"></span>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Random;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.LongAdder;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">演示 GC 日志生成与解读</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GCLogAnalysis</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Random</span> <span class="variable">random</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Random</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="comment">// 当前毫秒时间戳</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">startMillis</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">        <span class="comment">// 持续运行毫秒数；可根据需要进行修改</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">timeoutMillis</span> <span class="operator">=</span> TimeUnit.SECONDS.toMillis(<span class="number">1</span>);</span><br><span class="line">        <span class="comment">// 结束时间戳</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">endMillis</span> <span class="operator">=</span> startMillis + timeoutMillis;</span><br><span class="line">        <span class="type">LongAdder</span> <span class="variable">counter</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LongAdder</span>();</span><br><span class="line">        System.out.println(<span class="string">&quot;正在执行。..&quot;</span>);</span><br><span class="line">        <span class="comment">// 缓存一部分对象；进入老年代</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">cacheSize</span> <span class="operator">=</span> <span class="number">2000</span>;</span><br><span class="line">        Object[] cachedGarbage = <span class="keyword">new</span> <span class="title class_">Object</span>[cacheSize];</span><br><span class="line">        <span class="comment">// 在此时间范围内，持续循环</span></span><br><span class="line">        <span class="keyword">while</span> (System.currentTimeMillis() &lt; endMillis) &#123;</span><br><span class="line">            <span class="comment">// 生成垃圾对象</span></span><br><span class="line">            <span class="type">Object</span> <span class="variable">garbage</span> <span class="operator">=</span> generateGarbage(<span class="number">100</span> * <span class="number">1024</span>);</span><br><span class="line">            counter.increment();</span><br><span class="line">            <span class="type">int</span> <span class="variable">randomIndex</span> <span class="operator">=</span> random.nextInt(<span class="number">2</span> * cacheSize);</span><br><span class="line">            <span class="keyword">if</span> (randomIndex &lt; cacheSize) &#123;</span><br><span class="line">                cachedGarbage[randomIndex] = garbage;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;执行结束！共生成对象次数：&quot;</span> + counter.longValue());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 生成对象</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Object <span class="title function_">generateGarbage</span><span class="params">(<span class="type">int</span> max)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">randomSize</span> <span class="operator">=</span> random.nextInt(max);</span><br><span class="line">        <span class="type">int</span> <span class="variable">type</span> <span class="operator">=</span> randomSize % <span class="number">4</span>;</span><br><span class="line">        <span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">switch</span> (type) &#123;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">                result = <span class="keyword">new</span> <span class="title class_">int</span>[randomSize];</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">                result = <span class="keyword">new</span> <span class="title class_">byte</span>[randomSize];</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">                result = <span class="keyword">new</span> <span class="title class_">double</span>[randomSize];</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="type">StringBuilder</span> <span class="variable">builder</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">                <span class="type">String</span> <span class="variable">randomString</span> <span class="operator">=</span> <span class="string">&quot;randomString-Anything&quot;</span>;</span><br><span class="line">                <span class="keyword">while</span> (builder.length() &lt; randomSize) &#123;</span><br><span class="line">                    builder.append(randomString);</span><br><span class="line">                    builder.append(max);</span><br><span class="line">                    builder.append(randomSize);</span><br><span class="line">                &#125;</span><br><span class="line">                result = builder.toString();</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="串行-x2F-并行-x2F-G1-案例演练"><a href="#串行-x2F-并行-x2F-G1-案例演练" class="headerlink" title="串行&#x2F;并行&#x2F;G1 案例演练"></a>串行&#x2F;并行&#x2F;G1 案例演练</h3><h4 id="串行"><a href="#串行" class="headerlink" title="串行"></a>串行</h4><blockquote>
+<p>java -XX:+UseSerialGC -Xloggc:gc.log -Xms128m -Xmx128m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<blockquote>
+<p>java -XX:+UseSerialGC -Xloggc:gc.log -Xms512m -Xmx512m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<blockquote>
+<p>java -XX:+UseSerialGC -Xloggc:gc.log -Xms4g -Xmx4g -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<h4 id="并行"><a href="#并行" class="headerlink" title="并行"></a>并行</h4><blockquote>
+<p>java -XX:+UseParallelGC -Xloggc:gc.log -Xms128m -Xmx128m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<blockquote>
+<p>java -XX:+UseParallelGC -Xloggc:gc.log -Xms512m -Xmx512m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<blockquote>
+<p>java -XX:+UseParallelGC -Xloggc:gc.log -Xms4g -Xmx4g -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<h4 id="CMS"><a href="#CMS" class="headerlink" title="CMS"></a>CMS</h4><blockquote>
+<p>java -XX:+UseConcMarkSweepGC -Xloggc:gc.log -Xms128m -Xmx128m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<blockquote>
+<p>java -XX:+UseConcMarkSweepGC -Xloggc:gc.log -Xms512m -Xmx512m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<blockquote>
+<p>java -XX:+UseConcMarkSweepGC -Xloggc:gc.log -Xms4g -Xmx4g -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<h4 id="G1"><a href="#G1" class="headerlink" title="G1"></a>G1</h4><blockquote>
+<p>java -XX:+UseG1GC -Xloggc:gc.log -Xms128m -Xmx128m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<blockquote>
+<p>java -XX:+UseG1GC -Xloggc:gc.log -Xms512m -Xmx512m -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<blockquote>
+<p>java -XX:+UseG1GC -Xloggc:gc.log -Xms4g -Xmx4g -XX:+PrintGCDetails -XX:+PrintGCDateStamps GCLogAnalysis</p>
+</blockquote>
+<h4 id="汇总表格"><a href="#汇总表格" class="headerlink" title="汇总表格"></a>汇总表格</h4><table>
+<thead>
+<tr>
+<th align="left">堆内存大小</th>
+<th align="left">Serial GC</th>
+<th align="left">Parallel GC</th>
+<th align="left">CMS GC</th>
+<th align="left">G1 GC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">128M</td>
+<td align="left">OOM（26 次 GC，20 次 Full GC）</td>
+<td align="left">OOM（27 次 GC，17 次 Full GC）</td>
+<td align="left">OOM（24 次 GC，13 次 Full GC）</td>
+<td align="left">OOM（34 次 GC，11 次 Full GC）</td>
+</tr>
+<tr>
+<td align="left">512M</td>
+<td align="left">6837（13 次 GC，4 次 Full GC）</td>
+<td align="left">6933（28 次 GC，4 次 Full GC）</td>
+<td align="left">9023（29 次 GC，12 次 Full GC）</td>
+<td align="left">9232（47 次 GC，21 次 Full GC）</td>
+</tr>
+<tr>
+<td align="left">4G</td>
+<td align="left">8505（2 次 GC,0 次 Full GC）</td>
+<td align="left">10228（2 次 GC,0 次 Full GC）</td>
+<td align="left">11363（11 次 GC，0 次 Full GC）</td>
+<td align="left">11809（14 次 GC，0 次 Full GC）</td>
+</tr>
+</tbody></table>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>总体来看，当堆内存越大，GC 越不频繁，性能越好。当然，因为示例代码存在内存泄露的问题，只要时间够久，也总会 OOM 的。</p>
+<p>至于并行 GC 在小内存的时候并没有表现出我想象中的性能优势，我的猜想是因为内存泄漏，每次 GC 其实都占用了不少时间，但其实越往后，能够回收的内存越少。因为 CMS 和 G1 对暂停时间有一定的控制，除非回收次数显著高于并行 GC，不然在示例代码中并行 GC 的优势并不明显。还有就是示例代码执行时间不够长，只有一秒钟，如果时间足够长，并行 GC 在吞吐量方面应该是有优势的。</p>
+<p>在生产中，一般堆比较小的时候还是采用并行 GC 回收器，大内存的时候采用 G1 回收器，如果对延迟有特殊的要求，可以考虑 ZGC。</p>
+<h2 id="JVM-线程堆栈数据分析"><a href="#JVM-线程堆栈数据分析" class="headerlink" title="JVM 线程堆栈数据分析"></a>JVM 线程堆栈数据分析</h2><h3 id="JVM-内部线程种类"><a href="#JVM-内部线程种类" class="headerlink" title="JVM 内部线程种类"></a>JVM 内部线程种类</h3><p>• VM 线程：单例的 VMThread 对象，负责执行 VM 操作，下文将对此进行讨论；</p>
+<p>• 定时任务线程：单例的 WatcherThread 对象， 模拟在 VM 中执行定时操作的计时器中断；</p>
+<p>• GC 线程：垃圾收集器中，用于支持并行和并发垃圾回收的线程；</p>
+<p>• 编译器线程： 将字节码编译为本地机器代码；</p>
+<p>• 信号分发线程：等待进程指示的信号，并将其分配给 Java 级别的信号处理方法。</p>
+<h3 id="安全点"><a href="#安全点" class="headerlink" title="安全点"></a>安全点</h3><ol>
+<li><p>方法代码中被植入的安全点检测入口；</p>
+</li>
+<li><p>线程处于安全点状态：线程暂停执行，这个时候线程栈不再发生改变；</p>
+</li>
+<li><p>JVM 的安全点状态：所有线程都处于安全点状态。</p>
+</li>
+</ol>
+<h3 id="JVM-支持多种方式来进行线程转储"><a href="#JVM-支持多种方式来进行线程转储" class="headerlink" title="JVM 支持多种方式来进行线程转储"></a>JVM 支持多种方式来进行线程转储</h3><ol>
+<li><p>JDK 工具，包括：jstack 工具，jcmd 工具，jconsole, jvisualvm, Java Mission Control 等；</p>
+</li>
+<li><p>Shell 命令或者系统控制台，比如 Linux 的 kill -3,Windows 的 Ctrl + Break 等；</p>
+</li>
+<li><p>JMX 技术， 主要是使用 ThreadMxBean。</p>
+</li>
+</ol>
+<h2 id="内存分析与相关工具"><a href="#内存分析与相关工具" class="headerlink" title="内存分析与相关工具"></a>内存分析与相关工具</h2><h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><p>一个对象具有 100 个属性，与 100 个对象每个具有 1 个属性，哪个占用的内存空间更大？</p>
+<p>类比一百个箱子，每个箱子装一本书；一个箱子，装一百本书。</p>
+<h3 id="一个-Java-对象占用多少内存？"><a href="#一个-Java-对象占用多少内存？" class="headerlink" title="一个 Java 对象占用多少内存？"></a>一个 Java 对象占用多少内存？</h3><p>可以使用 Instrumentation.getObjectSize() 方法来估算一个对象占用的内存空间。</p>
+<p>JOL (Java Object Layout) 可以用来查看对象内存布局。</p>
+<h3 id="对象头和对象引用"><a href="#对象头和对象引用" class="headerlink" title="对象头和对象引用"></a>对象头和对象引用</h3><p>在 64 位 JVM 中，对象头占据的空间是 12-byte(&#x3D;96bit&#x3D;64+32)，但是以 8 字节对齐，所以一个空类的实例至少占用 16 字节。</p>
+<p>在 32 位 JVM 中，对象头占 8 个字节，以 4 的倍数对齐 (32&#x3D;4*8)。</p>
+<p>所以 new 出来很多简单对象，甚至是 new Object()，都会占用不少内容哈。</p>
+<p>通常在 32 位 JVM，以及内存小于 -Xmx32G 的 64 位 JVM 上（默认开启指针压缩），一个引用占的内存默认是 4 个字节。</p>
+<p>因此，64 位 JVM 一般需要多消耗堆内存。</p>
+<h4 id="包装类型"><a href="#包装类型" class="headerlink" title="包装类型"></a>包装类型</h4><p>包装类型比原生数据类型消耗的内存要多：</p>
+<p>Integer：占用 16 字节 (8+4&#x3D;12+补齐），因为 int 部分占 4 个字节。所以使用 Integer 比原生类型 int 要多消耗 300% 的内存。</p>
+<p>Long：一般占用 16 个字节 (8+8&#x3D;16)，当然，对象的实际大小由底层平台的内存对齐确定，具体由特定 CPU 平台的 JVM 实现决定。看起来一个 Long 类型的对象，比起原生类型 long 多占用了 8 个字节（也多消耗了 100%）。</p>
+<h4 id="多维数组"><a href="#多维数组" class="headerlink" title="多维数组"></a>多维数组</h4><p>在二维数组<code>int[dim1][dim2]</code> 中，每个嵌套的数组 int[dim2] 都是一个单独的 Object，会额外占用 16 字节的空间。当数组维度更大时，这种开销特别明显。</p>
+<p><code>int[128][2]</code> 实例占用 3600 字节。而 int[256] 实例则只占用 1040 字节。里面的有效存储空间是一样的，3600 比起 1040 多了 246%的额外开销。在极端情况下，<code>byte[256][1]</code>，额外开销的比例是 19 倍！</p>
+<h4 id="String"><a href="#String" class="headerlink" title="String"></a>String</h4><p>String 对象的空间随着内部字符数组的增长而增长。当然，String 类的对象有 24 个字节的额外开销。</p>
+<p>对于 10 字符以内的非空 String，增加的开销比起有效载荷（每个字符 2 字节+ 4 个字节的 length），多占用了 100% 到 400% 的内存。</p>
+<h4 id="对齐是绕不过去的问题"><a href="#对齐是绕不过去的问题" class="headerlink" title="对齐是绕不过去的问题"></a>对齐是绕不过去的问题</h4><p>我们可能会认为，一个 X 类的实例占用 17 字节的空间。但是由于需要对齐 (padding)，JVM 分配的内存是 8 字节的整数倍，所以占用的空间不是 17 字节，而是 24 字节。</p>
+<h3 id="常见异常"><a href="#常见异常" class="headerlink" title="常见异常"></a>常见异常</h3><h4 id="OutOfMemoryError-Java-heap-space"><a href="#OutOfMemoryError-Java-heap-space" class="headerlink" title="OutOfMemoryError: Java heap space"></a>OutOfMemoryError: Java heap space</h4><p>创建新的对象时，堆内存中的空间不足以存放新创建的对象</p>
+<p>产生的原因，很多时候就类似于将 XXL 号的对象，往 S 号的 Java heap space 里面塞。其实清楚了原因，问题就很容易解决了：只要增加堆内存的大小，程序就能正常运行。</p>
+<p>另外还有一些情况是由代码问题导致的：</p>
+<p>• 超出预期的访问量&#x2F;数据量：应用系统设计时，一般是有“容量”定义的，部署这么多机器，用来处理一定流量的数据&#x2F;业务。如果访问量突然飙升，超过预期的阈值，类似于时间坐标系中针尖形状的图谱。那么在峰值所在的时间段，程序很可能就会卡死、并触发<code>java.lang.OutOfMemoryError: Java heap space</code>错误。</p>
+<p>• 内存泄露 (Memory leak)：这也是一种经常出现的情形。由于代码中的某些隐蔽错误，导致系统占用的内存越来越多。如果某个方法&#x2F;某段代码存在内存泄漏，每执行一次，就会（有更多的垃圾对象）占用更多的内存。随着运行时间的推移，泄漏的对象耗光了堆中的所有内存，那么<code>java.lang.OutOfMemoryError: Java heap space</code> 错误就爆发了。</p>
+<h4 id="OutOfMemoryError-PermGen-space-x2F-OutOfMemoryError-Metaspace"><a href="#OutOfMemoryError-PermGen-space-x2F-OutOfMemoryError-Metaspace" class="headerlink" title="OutOfMemoryError: PermGen space&#x2F;OutOfMemoryError: Metaspace"></a>OutOfMemoryError: PermGen space&#x2F;OutOfMemoryError: Metaspace</h4><p>java.lang.OutOfMemoryError: PermGen space 的主要原因，是加载到内存中的</p>
+<p>class 数量太多或体积太大，超过了 PermGen 区的大小。</p>
+<p>解决办法：增大 PermGen&#x2F;Metaspace</p>
+<p>-XX:MaxPermSize&#x3D;512m</p>
+<p>-XX:MaxMetaspaceSize&#x3D;512m</p>
+<p>高版本 JVM 也可以：</p>
+<p>-XX:+CMSClassUnloadingEnabled</p>
+<h4 id="OutOfMemoryError-Unable-to-create-new-native-thread"><a href="#OutOfMemoryError-Unable-to-create-new-native-thread" class="headerlink" title="OutOfMemoryError: Unable to create new native thread"></a>OutOfMemoryError: Unable to create new native thread</h4><p>java.lang.OutOfMemoryError: Unable to create new native thread 错误是程序创建的线程数量已达到上限值的异常信息。</p>
+<p>解决思路：</p>
+<ol>
+<li><p>调整系统参数 ulimit -a，echo 120000 &gt; &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;threads-max</p>
+</li>
+<li><p>降低 xss 等参数</p>
+</li>
+<li><p>调整代码，改变线程创建和使用方式</p>
+</li>
+</ol>
+<h3 id="内存-dump-分析工具"><a href="#内存-dump-分析工具" class="headerlink" title="内存 dump 分析工具"></a>内存 dump 分析工具</h3><ul>
+<li>Eclipse MAT</li>
+<li>jhat</li>
+</ul>
+<h2 id="JVM-问题分析调优经验"><a href="#JVM-问题分析调优经验" class="headerlink" title="JVM 问题分析调优经验"></a>JVM 问题分析调优经验</h2><h3 id="1-高分配速率"><a href="#1-高分配速率" class="headerlink" title="1. 高分配速率"></a>1. 高分配速率</h3><p>分配速率 (Allocation rate) 表示单位时间内分配的内存量。通常使用 MB&#x2F;sec 作为单位。上一次垃圾收集之后，与下一次 GC 开始之前的年轻代使用量，两者的差值除以时间，就是分配速率。</p>
+<p>分配速率过高就会严重影响程序的性能，在 JVM 中可能会导致巨大的 GC 开销。</p>
+<p>正常系统：分配速率较低 ~ 回收速率 -&gt; 健康</p>
+<p>内存泄漏：分配速率持续大于回收速率 -&gt; OOM</p>
+<p>性能劣化：分配速率较高 ~ 回收速率 -&gt; 亚健康</p>
+<p>在某些情况下，只要增加年轻代的大小，即可降低分配速率过高所造成的影响。增加年轻代空间并不会降低分配速率，但是会减少 GC 的频率。如果每次 GC 后只有少量对象存活，minor GC 的暂停时间就不会明显增加。</p>
+<h3 id="2-过早提升"><a href="#2-过早提升" class="headerlink" title="2. 过早提升"></a>2. 过早提升</h3><p>提升速率（promotion rate）用于衡量单位时间内从年轻代提升到老年代的数据量。一般使用 MB&#x2F;sec 作为单位，和分配速率类似。</p>
+<p>JVM 会将长时间存活的对象从年轻代提升到老年代。根据分代假设，可能存在一种情况，老年代中不仅有存活时间长的对象，也可能有存活时间短的对象。这就是过早提升：对象存活时间还不够长的时候就被提升到了老年代。</p>
+<p>major GC 不是为频繁回收而设计的，但 major GC 现在也要清理这些生命短暂的对象，就会导致 GC 暂停时间过长。这会严重影响系统的吞吐量。</p>
+<p>GC 之前和之后的年轻代使用量以及堆内存使用量。这样就可以通过差值算出老年代的使用量。</p>
+<p>和分配速率一样，提升速率也会影响 GC 暂停的频率。但分配速率主要影响 minor GC，而提升速率则影响 major GC 的频率。</p>
+<p>有大量的对象提升，自然很快将老年代填满。老年代填充的越快，则 major GC 事件的频率就会越高。</p>
+<p>一般来说过早提升的症状表现为以下形式：</p>
+<ol>
+<li><p>短时间内频繁地执行 full GC</p>
+</li>
+<li><p>每次 full GC 后老年代的使用率都很低，在 10-20%或以下</p>
+</li>
+<li><p>提升速率接近于分配速率</p>
+</li>
+</ol>
+<p>解决这类问题，需要让年轻代存放得下暂存的数据，有两种简单的方法：</p>
+<p>一是增加年轻代的大小，设置 JVM 启动参数，类似这样：-Xmx64m -XX:NewSize&#x3D;32m，程序在执行时，Full GC 的次数自然会减少很多，只会对 minor GC 的持续时间产生影响。</p>
+<p>二是减少每次批处理的数量，也能得到类似的结果。</p>
+<p>至于选用哪个方案，要根据业务需求决定。在某些情况下，业务逻辑不允许减少批处理的数量，那就只能增加堆内存，或者重新指定年轻代的大小。如果都不可行，就只能优化数据结构，减少内存消耗。</p>
+<p>但总体目标依然是一致的：让临时数据能够在年轻代存放得下。</p>
+<h2 id="GC-疑难情况问题分析"><a href="#GC-疑难情况问题分析" class="headerlink" title="GC 疑难情况问题分析"></a>GC 疑难情况问题分析</h2><p>1、查询业务日志，可以发现这类问题：请求压力大，波峰，遭遇降级，熔断等等，基础服务、外部 API 依赖。</p>
+<p>2、查看系统资源和监控信息：</p>
+<p>硬件信息、操作系统平台、系统架构；</p>
+<p>排查 CPU 负载、内存不足，磁盘使用量、硬件故障、磁盘分区用满、IO 等待、IO 密集、丢数据、并发竞争等情况；</p>
+<p>排查网络：流量打满，响应超时，无响应，DNS 问题，网络抖动，防火墙问题，物理故障，网络参数调整、超时、连接数。</p>
+<p>3、查看性能指标，包括实时监控、历史数据。可以发现假死，卡顿、响应变慢等现象；</p>
+<p>排查数据库，并发连接数、慢查询、索引、磁盘空间使用量、内存使用量、网络带宽、死锁、TPS、查询</p>
+<p>数据量、redo 日志、undo、binlog 日志、代理、工具 BUG。可以考虑的优化包括：集群、主备、只读实例、分片、分区；</p>
+<p>大数据，中间件，JVM 参数。</p>
+<p>4、排查系统日志，比如重启、崩溃、Kill。</p>
+<p>5、APM，比如发现有些链路请求变慢等等。</p>
+<p>6、排查应用系统</p>
+<p>排查配置文件：启动参数配置、Spring 配置、JVM 监控参数、数据库参数、Log 参数、APM 配置、内存问题，比如是否存在内存泄漏，内存溢出、批处理导致的内存放大、GC 问题等等；</p>
+<p>GC 问题，确定 GC 算法、确定 GC 的 KPI，GC 总耗时、GC 最大暂停时间、分析 GC 日志和监控指标：内存分配速度，分代提升速度，内存使用率等数据。适当时修改内存配置；</p>
+<p>排查线程，理解线程状态、并发线程数，线程 Dump，锁资源、锁等待，死锁；</p>
+<p>排查代码，比如安全漏洞、低效代码、算法优化、存储优化、架构调整、重构、解决业务代码 BUG、第三方库、XSS、CORS、正则；</p>
+<p>单元测试：覆盖率、边界值、Mock 测试、集成测试。</p>
+<p>7、排除资源竞争、坏邻居效应</p>
+<p>8、疑难问题排查分析手段</p>
+<p>DUMP 线程&#x2F;内存；</p>
+<p>抽样分析&#x2F;调整代码、异步化、削峰填谷。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/04/49bfdd2b.html" rel="prev" title="JVM 相关总结（二）">
+      <i class="fa fa-chevron-left"></i> JVM 相关总结（二）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/04/910d18dc.html" rel="next" title="JEP-425 Virtual Threads (Preview)">
+      JEP-425 Virtual Threads (Preview) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="SOHUCS"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#JVM-%E7%9B%B8%E5%85%B3%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%89%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">JVM 相关总结（三）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#GC-%E6%97%A5%E5%BF%97%E8%A7%A3%E8%AF%BB%E4%B8%8E%E5%88%86%E6%9E%90"><span class="nav-number">1.1.</span> <span class="nav-text">GC 日志解读与分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="nav-number">1.1.1.</span> <span class="nav-text">示例代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%B2%E8%A1%8C-x2F-%E5%B9%B6%E8%A1%8C-x2F-G1-%E6%A1%88%E4%BE%8B%E6%BC%94%E7%BB%83"><span class="nav-number">1.1.2.</span> <span class="nav-text">串行&#x2F;并行&#x2F;G1 案例演练</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%B2%E8%A1%8C"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">串行</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">并行</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CMS"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">CMS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#G1"><span class="nav-number">1.1.2.4.</span> <span class="nav-text">G1</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B1%87%E6%80%BB%E8%A1%A8%E6%A0%BC"><span class="nav-number">1.1.2.5.</span> <span class="nav-text">汇总表格</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.1.2.6.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JVM-%E7%BA%BF%E7%A8%8B%E5%A0%86%E6%A0%88%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90"><span class="nav-number">1.2.</span> <span class="nav-text">JVM 线程堆栈数据分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM-%E5%86%85%E9%83%A8%E7%BA%BF%E7%A8%8B%E7%A7%8D%E7%B1%BB"><span class="nav-number">1.2.1.</span> <span class="nav-text">JVM 内部线程种类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E5%85%A8%E7%82%B9"><span class="nav-number">1.2.2.</span> <span class="nav-text">安全点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM-%E6%94%AF%E6%8C%81%E5%A4%9A%E7%A7%8D%E6%96%B9%E5%BC%8F%E6%9D%A5%E8%BF%9B%E8%A1%8C%E7%BA%BF%E7%A8%8B%E8%BD%AC%E5%82%A8"><span class="nav-number">1.2.3.</span> <span class="nav-text">JVM 支持多种方式来进行线程转储</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%88%86%E6%9E%90%E4%B8%8E%E7%9B%B8%E5%85%B3%E5%B7%A5%E5%85%B7"><span class="nav-number">1.3.</span> <span class="nav-text">内存分析与相关工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%9D%E8%80%83"><span class="nav-number">1.3.1.</span> <span class="nav-text">思考</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA-Java-%E5%AF%B9%E8%B1%A1%E5%8D%A0%E7%94%A8%E5%A4%9A%E5%B0%91%E5%86%85%E5%AD%98%EF%BC%9F"><span class="nav-number">1.3.2.</span> <span class="nav-text">一个 Java 对象占用多少内存？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E5%A4%B4%E5%92%8C%E5%AF%B9%E8%B1%A1%E5%BC%95%E7%94%A8"><span class="nav-number">1.3.3.</span> <span class="nav-text">对象头和对象引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8C%85%E8%A3%85%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">包装类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E7%BB%B4%E6%95%B0%E7%BB%84"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">多维数组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#String"><span class="nav-number">1.3.3.3.</span> <span class="nav-text">String</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E9%BD%90%E6%98%AF%E7%BB%95%E4%B8%8D%E8%BF%87%E5%8E%BB%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.3.3.4.</span> <span class="nav-text">对齐是绕不过去的问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E5%BC%82%E5%B8%B8"><span class="nav-number">1.3.4.</span> <span class="nav-text">常见异常</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#OutOfMemoryError-Java-heap-space"><span class="nav-number">1.3.4.1.</span> <span class="nav-text">OutOfMemoryError: Java heap space</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OutOfMemoryError-PermGen-space-x2F-OutOfMemoryError-Metaspace"><span class="nav-number">1.3.4.2.</span> <span class="nav-text">OutOfMemoryError: PermGen space&#x2F;OutOfMemoryError: Metaspace</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OutOfMemoryError-Unable-to-create-new-native-thread"><span class="nav-number">1.3.4.3.</span> <span class="nav-text">OutOfMemoryError: Unable to create new native thread</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98-dump-%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7"><span class="nav-number">1.3.5.</span> <span class="nav-text">内存 dump 分析工具</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JVM-%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90%E8%B0%83%E4%BC%98%E7%BB%8F%E9%AA%8C"><span class="nav-number">1.4.</span> <span class="nav-text">JVM 问题分析调优经验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E9%AB%98%E5%88%86%E9%85%8D%E9%80%9F%E7%8E%87"><span class="nav-number">1.4.1.</span> <span class="nav-text">1. 高分配速率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%BF%87%E6%97%A9%E6%8F%90%E5%8D%87"><span class="nav-number">1.4.2.</span> <span class="nav-text">2. 过早提升</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GC-%E7%96%91%E9%9A%BE%E6%83%85%E5%86%B5%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="nav-number">1.5.</span> <span class="nav-text">GC 疑难情况问题分析</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="江城子"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">江城子</p>
+  <div class="site-description" itemprop="description">一个普通程序员的个人博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/jlif" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;jlif" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:jiangchen23@qq.com" title="E-Mail → mailto:jiangchen23@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">鄂ICP备18009295号 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">江城子</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  <script>
+  NexT.utils.loadComments(document.querySelector('#SOHUCS'), () => {
+    var appid = 'cytDmFHt2';
+    var conf = 'fe6a4eb118f50302aade6effbd7afbf6';
+    var width = window.innerWidth || document.documentElement.clientWidth;
+    if (width < 960) {
+      window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>');
+    } else {
+      var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){window.changyan.api.config({appid:appid,conf:conf})});
+    }
+  });
+  </script>
+  <script src="https://assets.changyan.sohu.com/upload/plugins/plugins.count.js"></script>
+
+</body>
+</html>
